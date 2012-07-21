@@ -16,6 +16,8 @@
 
 #elif TWITPIC_USE_TOUCHJSON
 #import "CJSONDeserializer.h"
+#elif TWITPIC_USE_JSONKIT
+#import "JSONKit.h"
 
 //  #elif TWITPIC_USE_LIBXML
 //    #include <libxml/xmlreader.h>
@@ -31,12 +33,13 @@
 
 @synthesize _queue;
 
-+ (GSTwitPicEngine *)twitpicEngineWithDelegate:(NSObject *)theDelegate {
++ (GSTwitPicEngine *)twitpicEngineWithDelegate:(id<GSTwitPicEngineDelegate>)theDelegate {
   return [[[self alloc] initWithDelegate:theDelegate] autorelease];
 }
 
 
-- (GSTwitPicEngine *)initWithDelegate:(NSObject *)delegate {
+- (GSTwitPicEngine *)initWithDelegate:(id<GSTwitPicEngineDelegate>)delegate 
+{
   if (self = [super init]) {
     _delegate = delegate;
     _queue = [[ASINetworkQueue alloc] init];
@@ -127,6 +130,11 @@
   }
 }
 
+- (void)cancel
+{
+    [_queue cancelAllOperations];
+}
+
 
 #pragma mark -
 #pragma mark OAuth
@@ -161,6 +169,8 @@
         response = [responseString yajl_JSON];
 #elif TWITPIC_USE_SBJSON
         response = [responseString JSONValue];
+#elif TWITPIC_USE_JSONKIT
+        response = [responseString objectFromJSONString];
 #elif TWITPIC_USE_TOUCHJSON
         NSError *error = nil;
         response = [[CJSONDeserializer deserializer] deserialize:responseString error:&error];
